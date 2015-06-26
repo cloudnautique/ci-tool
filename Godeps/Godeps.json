@@ -1,0 +1,16 @@
+{
+	"ImportPath": "github.com/cloudnautique/ci-tool",
+	"GoVersion": "go1.4.2",
+	"Deps": [
+		{
+			"ImportPath": "github.com/Sirupsen/logrus",
+			"Comment": "v0.8.2-14-gd3e4ea4",
+			"Rev": "d3e4ea403263d5e349c43ba8309e81f820325393"
+		},
+		{
+			"ImportPath": "github.com/codegangsta/cli",
+			"Comment": "1.2.0-127-gad48024",
+			"Rev": "ad480243a8a6cda30acf7cd999ea3e5142154fde"
+		}
+	]
+}

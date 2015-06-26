@@ -14,9 +14,15 @@ func main() {
 	app.Name = "ci-tool"
 	app.Usage = "Print Test Failures"
 	app.Version = "0.0.1"
+	app.Flags = []cli.Flag{
+		cli.BoolFlag{
+			Name:  "with-skipped",
+			Usage: "print skipped tests",
+		},
+	}
 
 	app.Action = func(c *cli.Context) {
-		err := parseFile(c.Args()[0])
+		err := parseFile(c.Args()[0], c.Bool("with-skipped"))
 		if err != nil {
 			log.Fatalf("Could not parse, Exiting")
 		}
@@ -25,7 +31,7 @@ func main() {
 	app.Run(os.Args)
 }
 
-func parseFile(fileName string) error {
+func parseFile(fileName string, withSkipped bool) error {
 	log.Infof("Processing file: %s", fileName)
 	junitFile, err := os.Open(fileName)
 	if err != nil {
@@ -40,6 +46,6 @@ func parseFile(fileName string) error {
 	xml.Unmarshal(XMLdata, &testSuite)
 
 	report := GenTestSuiteReport(testSuite.TestCases)
-	report.Print()
+	report.Print(withSkipped)
 	return nil
 }

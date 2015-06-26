@@ -1,1 +1,13 @@
 #!/bin/bash
+
+set -e
+
+IMAGE=cloudnautique/ci-tool
+BUILD=${IMAGE}-build
+BIN_TARGET=/usr/bin/ci-tool
+
+cd $(dirname $0)/..
+
+docker build -t $BUILD .
+docker run -v $(pwd):/target $BUILD cp ${BIN_TARGET} /target
+docker build -t $IMAGE -f Dockerfile.dist .

@@ -1,0 +1,4 @@
+FROM scratch
+
+ADD ./ci-tool /
+CMD [ci-tool]

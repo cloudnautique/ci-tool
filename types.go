@@ -24,6 +24,7 @@ type JUnitTestCase struct {
 	Time        string            `xml:"time,attr"`
 	SkipMessage *JUnitSkipMessage `xml:"skipped,omitempty"`
 	Failure     *JUnitFailure     `xml:"failure,omitempty"`
+	Error       *JUnitError       `xml:"error,omitempty"`
 }
 
 // JUnitSkipMessage contains the reason why a testcase was skipped.
@@ -42,5 +43,10 @@ type JUnitProperty struct {
 type JUnitFailure struct {
 	Message  string `xml:"message,attr"`
 	Type     string `xml:"type,attr"`
+	Contents string `xml:",chardata"`
+}
+
+type JUnitError struct {
+	Message  string `xml:"message,attr"`
 	Contents string `xml:",chardata"`
 }

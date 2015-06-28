@@ -1,8 +1,6 @@
 package main
 
 import (
-	"encoding/xml"
-	"io/ioutil"
 	"os"
 
 	log "github.com/Sirupsen/logrus"
@@ -19,33 +17,23 @@ func main() {
 			Name:  "with-skipped",
 			Usage: "print skipped tests",
 		},
+		cli.BoolFlag{
+			Name:   "escaped-newline",
+			Usage:  "escapes newlines",
+			EnvVar: "ESCAPED_NEWLINE",
+		},
 	}
 
 	app.Action = func(c *cli.Context) {
-		err := parseFile(c.Args()[0], c.Bool("with-skipped"))
+		report, err := NewTestSuiteReport(c.Args()[0], &TestSuiteReportFormat{
+			WithSkipped:    c.Bool("with-skipped"),
+			NewLineEscaped: c.Bool("escaped-newline"),
+		})
 		if err != nil {
 			log.Fatalf("Could not parse, Exiting")
 		}
+		report.Print()
 	}
 
 	app.Run(os.Args)
-}
-
-func parseFile(fileName string, withSkipped bool) error {
-	log.Infof("Processing file: %s", fileName)
-	junitFile, err := os.Open(fileName)
-	if err != nil {
-		log.Fatalf("Error openining file: %s", fileName)
-		return err
-	}
-	defer junitFile.Close()
-
-	XMLdata, _ := ioutil.ReadAll(junitFile)
-
-	var testSuite JUnitTestSuite
-	xml.Unmarshal(XMLdata, &testSuite)
-
-	report := GenTestSuiteReport(testSuite.TestCases)
-	report.Print(withSkipped)
-	return nil
 }

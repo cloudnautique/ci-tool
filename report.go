@@ -1,16 +1,62 @@
 package main
 
 import (
+	"encoding/xml"
 	"fmt"
+	"io/ioutil"
+	"os"
+
+	log "github.com/Sirupsen/logrus"
 )
 
 type TestSuiteReport struct {
 	Skipped []JUnitTestCase
 	Failed  []JUnitTestCase
 	Errored []JUnitTestCase
+	Format  *TestSuiteReportFormat
 }
 
-func GenTestSuiteReport(testcases []JUnitTestCase) TestSuiteReport {
+type TestSuiteReportFormat struct {
+	WithSkipped    bool
+	NewLineEscaped bool
+}
+
+func NewTestSuiteReport(file string, format *TestSuiteReportFormat) (TestSuiteReport, error) {
+	var report TestSuiteReport
+	parsedJunitFile, err := parseJunitFile(file)
+	if err != nil {
+		log.Fatalf("Could not create report")
+		return report, err
+	}
+
+	report.setTestSuiteReport(parsedJunitFile.TestCases)
+	report.Format = format
+
+	return report, nil
+}
+
+func parseJunitFile(filename string) (JUnitTestSuite, error) {
+	var testSuite JUnitTestSuite
+
+	junitFile, err := os.Open(filename)
+	if err != nil {
+		log.Errorf("Error openining file: %s", filename)
+		return testSuite, err
+	}
+	defer junitFile.Close()
+
+	XMLdata, err := ioutil.ReadAll(junitFile)
+	if err != nil {
+		log.Errorf("Error parsing Junit file: %s", filename)
+		return testSuite, err
+	}
+
+	xml.Unmarshal(XMLdata, &testSuite)
+
+	return testSuite, nil
+}
+
+func (report *TestSuiteReport) setTestSuiteReport(testcases []JUnitTestCase) {
 	var failures []JUnitTestCase
 	var skipped []JUnitTestCase
 	var errored []JUnitTestCase
@@ -27,26 +73,32 @@ func GenTestSuiteReport(testcases []JUnitTestCase) TestSuiteReport {
 		}
 	}
 
-	report := TestSuiteReport{
-		Failed:  failures,
-		Skipped: skipped,
-		Errored: errored,
-	}
+	report.Failed = failures
+	report.Skipped = skipped
+	report.Errored = errored
 
-	return report
 }
 
-func (report TestSuiteReport) Print(withSkippedFlag bool) {
-	printJUnitSlice("Failed", report.Failed)
-	printJUnitSlice("Errored", report.Errored)
+func (report TestSuiteReport) Print() {
+	newLine := getNewLine(report.Format.NewLineEscaped)
+	printJUnitSlice("Failed", newLine, report.Failed)
+	printJUnitSlice("Errored", newLine, report.Errored)
 
-	if withSkippedFlag {
-		printJUnitSlice("Skipped", report.Skipped)
+	if report.Format.WithSkipped {
+		printJUnitSlice("Skipped", newLine, report.Skipped)
 	}
 }
 
-func printJUnitSlice(messagePfx string, testcases []JUnitTestCase) {
+func getNewLine(flag bool) string {
+	newLine := "\n"
+	if flag {
+		newLine = "\\n"
+	}
+	return newLine
+}
+
+func printJUnitSlice(messagePfx string, newLine string, testcases []JUnitTestCase) {
 	for _, testcase := range testcases {
-		fmt.Printf("%s: %s\n", messagePfx, testcase.Name)
+		fmt.Printf("%s: %s%s", messagePfx, newLine, testcase.Name)
 	}
 }

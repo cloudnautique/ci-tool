@@ -99,6 +99,6 @@ func getNewLine(flag bool) string {
 
 func printJUnitSlice(messagePfx string, newLine string, testcases []JUnitTestCase) {
 	for _, testcase := range testcases {
-		fmt.Printf("%s: %s%s", messagePfx, newLine, testcase.Name)
+		fmt.Printf("%s: %s %s", messagePfx, testcase.Name, newLine)
 	}
 }

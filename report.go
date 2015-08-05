@@ -10,10 +10,15 @@ import (
 )
 
 type TestSuiteReport struct {
-	Skipped []JUnitTestCase
-	Failed  []JUnitTestCase
-	Errored []JUnitTestCase
-	Format  *TestSuiteReportFormat
+	Errors   int
+	Skips    int
+	Failures int
+	Tests    int
+	Time     string
+	Skipped  []JUnitTestCase
+	Failed   []JUnitTestCase
+	Errored  []JUnitTestCase
+	Format   *TestSuiteReportFormat
 }
 
 type TestSuiteReportFormat struct {
@@ -30,6 +35,13 @@ func NewTestSuiteReport(file string, format *TestSuiteReportFormat) (TestSuiteRe
 	}
 
 	report.setTestSuiteReport(parsedJunitFile.TestCases)
+
+	report.Time = parsedJunitFile.Time
+	report.Failures = parsedJunitFile.Failures
+	report.Tests = parsedJunitFile.Tests
+	report.Errors = parsedJunitFile.Errors
+	report.Skips = parsedJunitFile.Skips
+
 	report.Format = format
 
 	return report, nil
@@ -81,6 +93,8 @@ func (report *TestSuiteReport) setTestSuiteReport(testcases []JUnitTestCase) {
 
 func (report TestSuiteReport) Print() {
 	newLine := getNewLine(report.Format.NewLineEscaped)
+	fmt.Printf("Summary: %d passed, %d errors, %d failures, %d skips, %s time%s",
+		report.Tests, report.Errors, report.Failures, report.Skips, report.Time, newLine)
 	printJUnitSlice("Failed", newLine, report.Failed)
 	printJUnitSlice("Errored", newLine, report.Errored)
 
